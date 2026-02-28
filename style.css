@@ -158,3 +158,27 @@ nav button:hover {
 .forgot-pw:hover {
     color: white;
 }
+
+/* Mobile Responsive Adjustments */
+@media (max-width: 768px) {
+    nav button {
+        padding: 8px 15px;
+        margin: 0 5px;
+        font-size: 14px;
+    }
+
+    .login-card {
+        width: 85%; /* Card takes up more width on mobile */
+        padding: 25px;
+    }
+
+    .login-card h2 {
+        font-size: 20px;
+    }
+}
+
+/* Ensure the background doesn't shift weirdly on mobile browsers */
+.bg-container {
+    height: 100vh;
+    height: -webkit-fill-available;
+}
