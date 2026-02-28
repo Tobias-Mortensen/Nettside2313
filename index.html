@@ -3,21 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Node Site</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: sans-serif;
-        }
-        .greeting {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            font-size: 1.2rem;
-        }
-    </style>
+    <title>Spotlight Website</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="greeting">Hi</div>
+
+    <header>
+        <nav>
+            <button>Home</button>
+<a href="/login">
+    <button>Log In</button>
+</a>
+            <button>FAQ</button>
+        </nav>
+    </header>
+
+    <main class="bg-container">
+        <div class="background-blurred"></div>
+        <div class="background-sharp" id="sharpLayer"></div>
+    </main>
+
+    <script src="script.js"></script>
 </body>
 </html>
