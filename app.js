@@ -40,17 +40,18 @@ app.get('/site', requireAuth, (req, res) => res.sendFile(path.join(__dirname, 's
 app.get('/faq', (req, res) => {res.sendFile(path.join(__dirname, 'faq.html'));});
 
 
-// Sign Up Logic with Encryption
+// Sign Up Logic: Encrypt, Save, and Auto-Login
 app.post('/auth/signup', async (req, res) => {
     try {
         const { username, password } = req.body;
         const users = JSON.parse(fs.readFileSync(USERS_FILE));
 
+        // Check if user exists
         if (users.find(u => u.username === username)) {
             return res.send("User already exists.");
         }
 
-        // ENCRYPTION: Hash the password before saving
+        // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const newUser = {
@@ -59,10 +60,22 @@ app.post('/auth/signup', async (req, res) => {
             permission: 1
         };
 
+        // Save to JSON file
         users.push(newUser);
         fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 4));
-        res.redirect('/login');
+
+        // --- THE MAGIC PART: AUTO-LOGIN ---
+        // We manually create the session for the user right now
+        req.session.user = { 
+            username: newUser.username, 
+            permission: newUser.permission 
+        };
+
+        // Redirect straight to the secret page
+        res.redirect('/penis');
+
     } catch (err) {
+        console.error(err);
         res.status(500).send("Error signing up.");
     }
 });
