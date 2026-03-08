@@ -37,6 +37,7 @@ app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'login.html')));
 app.get('/signup', (req, res) => res.sendFile(path.join(__dirname, 'signup.html')));
 app.get('/site', requireAuth, (req, res) => res.sendFile(path.join(__dirname, 'site.html')));
+app.get('/faq', (req, res) => {res.sendFile(path.join(__dirname, 'faq.html'));});
 
 
 // Sign Up Logic with Encryption
