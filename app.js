@@ -46,33 +46,34 @@ app.post('/auth/signup', async (req, res) => {
         const { username, password } = req.body;
         const users = JSON.parse(fs.readFileSync(USERS_FILE));
 
-        // Check if user exists
         if (users.find(u => u.username === username)) {
             return res.send("User already exists.");
         }
 
-        // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
-
         const newUser = {
             username,
             password: hashedPassword,
             permission: 1
         };
 
-        // Save to JSON file
         users.push(newUser);
         fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 4));
 
-        // --- THE MAGIC PART: AUTO-LOGIN ---
-        // We manually create the session for the user right now
+        // --- THE FIX ---
         req.session.user = { 
             username: newUser.username, 
             permission: newUser.permission 
         };
 
-        // Redirect straight to the secret page
-        res.redirect('/site');
+        // Force save the session before redirecting
+        req.session.save((err) => {
+            if (err) {
+                console.error("Session save error:", err);
+                return res.redirect('/login');
+            }
+            res.redirect('/site');
+        });
 
     } catch (err) {
         console.error(err);
