@@ -1,17 +1,2 @@
 [
-    {
-        "username": "333",
-        "password": "333",
-        "permission": 1
-    },
-    {
-        "username": "444",
-        "password": "$2b$10$QiGdhfqTl0rwKBxa/2/6k.W3bcx.Uz31dhbx4Yf3nK6IORhR/F8sO",
-        "permission": 1
-    },
-    {
-        "username": "555",
-        "password": "$2b$10$cE3MY6HZHzhLPq1o/Tjpderyl9KWmbLVQBZlVmVLQykK6LHnCz8bK",
-        "permission": 1
-    }
 ]
