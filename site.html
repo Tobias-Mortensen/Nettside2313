@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internal Access | Spotlight Noir</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <nav>
+            <button onclick="window.location.href='/site'">Homepage</button>
+            <button onclick="window.location.href='/logout'">Log Out</button>
+            <button onclick="window.location.href='/faq'">FAQ</button>
+        </nav>
+    </header>
+
+    <main class="bg-container">
+        <div class="background-blurred"></div>
+        <div class="dark-overlay"></div>
+        
+        <section class="login-wrapper">
+            <div class="login-card">
+                <h2>HELLO</h2>
+                <p>Internal session initialized. You have successfully bypassed the perimeter.</p>
+                
+                <div style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                    <span style="font-size: 12px; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 2px;">
+                        System Status: Active
+                    </span>
+                </div>
+            </div>
+        </section>
+
+        <div class="background-sharp" id="sharpLayer"></div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

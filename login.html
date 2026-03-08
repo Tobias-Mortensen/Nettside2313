@@ -10,11 +10,11 @@
 
     <header>
         <nav>
-            <button>Home</button>
-<a href="/login">
-    <button>Log In</button>
-</a>
-            <button>FAQ</button>
+            <button onclick="window.location.href='/'">Front Page</button>
+            <button onclick="window.location.href='/site'">Homepage</button>
+            <button onclick="window.location.href='/login'">Log In</button>
+            <button onclick="window.location.href='/signup'">Sign Up</button>
+            <button onclick="window.location.href='/faq'">FAQ</button>
         </nav>
     </header>
 
@@ -24,17 +24,23 @@
         
         <section class="login-wrapper">
             <div class="login-card">
-                <p>Please verify your credentials</p>
-                <form>
+                <h2>Access Portal</h2>
+                <p>Verify your credentials to proceed</p>
+                
+                <form action="/auth/login" method="POST">
                     <div class="input-group">
-                        <input type="text" placeholder="Username" required>
+                        <input type="text" name="username" placeholder="Username" required autocomplete="username">
                     </div>
                     <div class="input-group">
-                        <input type="password" placeholder="Password" required>
+                        <input type="password" name="password" placeholder="Password" required autocomplete="current-password">
                     </div>
                     <button type="submit" class="login-btn">Initialize Session</button>
                 </form>
-                <a href="#" class="forgot-pw">Forgot Password?</a>
+                
+                <div class="login-footer">
+                    <a href="/signup" class="forgot-pw">Need an account? Sign Up</a>
+                    <a href="#" class="forgot-pw">Forgot Password?</a>
+                </div>
             </div>
         </section>
 

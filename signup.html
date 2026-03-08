@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up | Spotlight Noir</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <nav>
+            <button onclick="window.location.href='/'">Front Page</button>
+            <button onclick="window.location.href='/site'">Homepage</button>
+            <button onclick="window.location.href='/login'">Log In</button>
+            <button onclick="window.location.href='/signup'">Sign Up</button>
+            <button onclick="window.location.href='/faq'">FAQ</button>
+        </nav>
+    </header>
+
+    <main class="bg-container">
+        <div class="background-blurred"></div>
+        <div class="dark-overlay"></div>
+        
+        <section class="login-wrapper">
+            <div class="login-card">
+                <h2>Create Account</h2>
+                <p>Register for system access</p>
+                <form action="/auth/signup" method="POST">
+                    <div class="input-group">
+                        <input type="text" name="username" placeholder="Username" required autocomplete="username">
+                    </div>
+                    <div class="input-group">
+                        <input type="password" name="password" placeholder="Password" required autocomplete="new-password">
+                    </div>
+                    <button type="submit" class="login-btn">Register</button>
+                </form>
+                <a href="/login" class="forgot-pw">Already have an account? Login</a>
+            </div>
+        </section>
+
+        <div class="background-sharp" id="sharpLayer"></div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
