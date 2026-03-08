@@ -1,3 +1,8 @@
+/* Core Reset */
+* {
+    box-sizing: border-box;
+}
+
 body, html {
     margin: 0;
     padding: 0;
@@ -5,39 +10,53 @@ body, html {
     background-color: #000;
     font-family: 'Segoe UI', sans-serif;
     overflow: hidden;
+    touch-action: manipulation; /* Improves mobile tap response */
 }
 
+/* Updated Header & Nav for Mobile Compatibility */
 header {
     position: fixed;
     top: 0;
     width: 100%;
     display: flex;
     justify-content: center;
-    padding: 30px 0;
+    padding: 25px 10px; /* Side padding for narrow screens */
     z-index: 100;
 }
 
+nav {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap; /* Allows buttons to drop to next line if screen is too thin */
+    gap: 10px; /* Modern spacing instead of margins */
+}
+
 nav button {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: white;
-    padding: 12px 28px;
-    margin: 0 10px;
+    padding: 14px 26px; /* Beefier buttons for easier clicking */
     cursor: pointer;
     backdrop-filter: blur(10px);
     border-radius: 30px;
     transition: 0.3s;
+    font-size: 15px;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
 }
 
-nav button:hover {
+nav button:hover, nav button:active {
     background: rgba(255, 255, 255, 0.2);
     border-color: white;
+    transform: scale(1.02);
 }
 
+/* Background Layers */
 .bg-container {
     position: relative;
     width: 100vw;
     height: 100vh;
+    height: -webkit-fill-available;
     overflow: hidden;
 }
 
@@ -48,15 +67,14 @@ nav button:hover {
     background: url('epstein.jpg') no-repeat center center;
     background-size: cover;
     filter: blur(10px);
-    transform: scale(1.1); /* Zoomed slightly to hide blurred edges */
+    transform: scale(1.1);
 }
 
-/* This creates the dark grey tint */
 .dark-overlay {
     position: absolute;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.6); /* Adjust 0.6 for darkness */
+    background: rgba(0, 0, 0, 0.6);
     z-index: 1;
 }
 
@@ -66,22 +84,22 @@ nav button:hover {
     height: 100%;
     background: url('epstein.jpg') no-repeat center center;
     background-size: cover;
-    z-index: 2; /* Sits on top of the dark overlay */
+    z-index: 2;
     -webkit-mask-image: radial-gradient(circle 250px at -500px -500px, black 0%, transparent 80%);
     mask-image: radial-gradient(circle 250px at -500px -500px, black 0%, transparent 80%);
 }
 
-/* ... Keep previous body and background styles ... */
-
+/* UI Elements */
 .login-wrapper {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    z-index: 5; /* Sits between the dark overlay and the spotlight */
+    z-index: 5;
     display: flex;
     justify-content: center;
     align-items: center;
+    width: 100%;
 }
 
 .login-card {
@@ -109,6 +127,7 @@ nav button:hover {
     margin-bottom: 30px;
 }
 
+/* Forms */
 .input-group {
     margin-bottom: 20px;
 }
@@ -131,7 +150,7 @@ nav button:hover {
 
 .login-btn {
     width: 100%;
-    padding: 12px;
+    padding: 15px; /* Larger button for mobile */
     border: none;
     border-radius: 8px;
     background: white;
@@ -140,6 +159,7 @@ nav button:hover {
     cursor: pointer;
     transition: 0.3s;
     margin-top: 10px;
+    font-size: 16px;
 }
 
 .login-btn:hover {
@@ -159,26 +179,30 @@ nav button:hover {
     color: white;
 }
 
-/* Mobile Responsive Adjustments */
+/* Updated Mobile Responsive Adjustments */
 @media (max-width: 768px) {
+    header {
+        padding: 15px 5px;
+    }
+
+    nav {
+        gap: 8px;
+    }
+
     nav button {
-        padding: 8px 15px;
-        margin: 0 5px;
-        font-size: 14px;
+        padding: 16px 20px; /* Taller hit area for thumbs */
+        font-size: 13px;
+        flex: 1 1 auto; /* Grow to fill space */
+        min-width: 110px;
+        text-align: center;
     }
 
     .login-card {
-        width: 85%; /* Card takes up more width on mobile */
-        padding: 25px;
+        width: 85%;
+        padding: 30px 20px;
     }
 
     .login-card h2 {
         font-size: 20px;
     }
-}
-
-/* Ensure the background doesn't shift weirdly on mobile browsers */
-.bg-container {
-    height: 100vh;
-    height: -webkit-fill-available;
 }
