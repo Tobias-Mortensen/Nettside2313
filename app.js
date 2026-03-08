@@ -82,7 +82,7 @@ app.post('/auth/login', async (req, res) => {
                 req.session.user = { username: user.username, permission: user.permission };
                 
                 // CRITICAL: This must be res.redirect for the URL to change
-                return res.redirect('/penis'); 
+                return res.redirect('/site'); 
             }
         }
         res.send("Invalid username or password.");
