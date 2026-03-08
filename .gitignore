@@ -1,0 +1,11 @@
+# Dependency folders
+node_modules/
+
+# Sensitive user data (NEVER upload this)
+users.json
+
+# Environment variables
+env
+
+# Logs
+npm-debug.log*

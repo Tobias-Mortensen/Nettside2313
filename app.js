@@ -8,11 +8,13 @@ const app = express();
 const USERS_FILE = path.join(__dirname, 'users.json');
 
 // 1. Session Middleware setup
+require('dotenv').config();
+
 app.use(session({
-    secret: 'island-secret-key-123', // Change this to a random string
+    secret: process.env.SESSION_SECRET, // Pulls from the .env file
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false } // Set to true if you set up HTTPS/SSL later
+    cookie: { secure: false } 
 }));
 
 app.use(express.urlencoded({ extended: true }));
