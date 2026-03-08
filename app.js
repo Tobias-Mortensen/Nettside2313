@@ -72,7 +72,7 @@ app.post('/auth/signup', async (req, res) => {
         };
 
         // Redirect straight to the secret page
-        res.redirect('/penis');
+        res.redirect('/site');
 
     } catch (err) {
         console.error(err);
