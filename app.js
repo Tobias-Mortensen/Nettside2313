@@ -74,9 +74,9 @@ app.post('/auth/login', async (req, res) => {
         const user = users.find(u => u.username === username);
         if (user && await bcrypt.compare(password, user.password)) {
             req.session.user = { username: user.username, permission: user.permission };
-            return res.redirect('/site');
+            return res.json({ success: true });
         }
-        res.send("Invalid username or password.");
+        res.status(401).json({ error: "Invalid username or password." });
     } catch (err) {
         res.status(500).send("Server error.");
     }
@@ -89,6 +89,11 @@ app.get('/logout', (req, res) => {
 
 // --- Chat Logic ---
 const cooldowns = new Set();
+
+app.get('/api/chats/public', (req, res) => {
+    const chatData = JSON.parse(fs.readFileSync(CHAT_FILE, 'utf8') || '[]');
+    res.json(chatData.slice(-50));
+});
 
 app.get('/api/chats', requireAuth, (req, res) => {
     const chatData = JSON.parse(fs.readFileSync(CHAT_FILE, 'utf8') || "[]");

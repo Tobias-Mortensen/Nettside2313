@@ -21,8 +21,34 @@
     <main class="bg-container">
         <div class="background-blurred"></div>
         <div class="background-sharp" id="sharpLayer"></div>
+
+        <div id="chat-window" class="chat-container">
+            <div class="chat-header">Epstein Files — Read Only</div>
+            <div id="chat-messages" class="chat-messages"></div>
+            <div class="chat-input-area" style="justify-content:center; padding: 12px 20px;">
+                <span style="font-size:12px; color:rgba(255,255,255,0.35); letter-spacing:1.5px; text-transform:uppercase;">Log in to send messages</span>
+            </div>
+        </div>
     </main>
 
     <script src="script.js"></script>
+    <script>
+        async function loadPublicMessages() {
+            try {
+                const res = await fetch('/api/chats/public');
+                const data = await res.json();
+                const container = document.getElementById('chat-messages');
+                if (!container) return;
+                const wasAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 150;
+                container.innerHTML = data.map(m =>
+                    `<div class="msg"><b>${m.username}</b><span>${m.text}</span></div>`
+                ).join('');
+                if (wasAtBottom) container.scrollTop = container.scrollHeight;
+            } catch (e) {}
+        }
+
+        loadPublicMessages();
+        setInterval(loadPublicMessages, 3000);
+    </script>
 </body>
 </html>
