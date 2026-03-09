@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Page | Epstein Island</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Internal Access | Epstein Island</title>
+    <link rel="stylesheet" href="/style.css">
 </head>
 <body>
 
@@ -23,20 +23,33 @@
         
         <section class="login-wrapper">
             <div class="login-card">
-                <h2>HELLO</h2>
+                <h2>ACCESS GRANTED</h2>
                 <p>Internal session initialized. You have successfully bypassed the perimeter.</p>
-                
                 <div style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-                    <span style="font-size: 12px; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 2px;">
-                        System Status: Active
+                    <span style="font-size: 11px; color: #00ff00; text-transform: uppercase; letter-spacing: 2px; opacity: 0.7;">
+                        System Status: Secure
                     </span>
                 </div>
             </div>
         </section>
 
+        <button id="chat-toggle" class="chat-toggle-btn">💬 Chat</button>
+
+        <div id="chat-window" class="chat-container hidden">
+            <div class="chat-header">Epstein Files</div>
+            <div id="chat-messages" class="chat-messages"></div>
+<div class="chat-input-area">
+    <div style="position: relative; flex: 1; display: flex;">
+        <input type="text" id="chat-input" placeholder="Type a message..." maxlength="128">
+        <span id="char-count">0/128</span>
+    </div>
+    <button id="send-btn">Send</button>
+</div>
+        </div>
+
         <div class="background-sharp" id="sharpLayer"></div>
     </main>
 
-    <script src="script.js"></script>
+    <script src="/script.js"></script>
 </body>
 </html>

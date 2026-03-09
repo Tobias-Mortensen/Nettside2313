@@ -10,32 +10,32 @@ body, html {
     background-color: #000;
     font-family: 'Segoe UI', sans-serif;
     overflow: hidden;
-    touch-action: manipulation; /* Improves mobile tap response */
+    touch-action: manipulation;
 }
 
-/* Updated Header & Nav for Mobile Compatibility */
+/* Updated Header & Nav */
 header {
     position: fixed;
     top: 0;
     width: 100%;
     display: flex;
     justify-content: center;
-    padding: 25px 10px; /* Side padding for narrow screens */
+    padding: 25px 10px;
     z-index: 100;
 }
 
 nav {
     display: flex;
     justify-content: center;
-    flex-wrap: wrap; /* Allows buttons to drop to next line if screen is too thin */
-    gap: 10px; /* Modern spacing instead of margins */
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 nav button {
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: white;
-    padding: 14px 26px; /* Beefier buttons for easier clicking */
+    padding: 14px 26px;
     cursor: pointer;
     backdrop-filter: blur(10px);
     border-radius: 30px;
@@ -89,7 +89,7 @@ nav button:hover, nav button:active {
     mask-image: radial-gradient(circle 250px at -500px -500px, black 0%, transparent 80%);
 }
 
-/* UI Elements */
+/* UI Elements - Login/Signup Card */
 .login-wrapper {
     position: absolute;
     top: 50%;
@@ -127,44 +127,49 @@ nav button:hover, nav button:active {
     margin-bottom: 30px;
 }
 
-/* Forms */
+/* Forms - Styling the text fields for Login/Signup */
 .input-group {
     margin-bottom: 20px;
+    text-align: left;
 }
 
 .input-group input {
     width: 100%;
-    padding: 12px;
+    padding: 14px 18px;
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
+    border-radius: 12px;
     color: white;
+    font-size: 16px;
     outline: none;
-    transition: 0.3s;
+    transition: all 0.3s ease;
 }
 
 .input-group input:focus {
-    border-color: rgba(255, 255, 255, 0.5);
     background: rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
 }
 
 .login-btn {
     width: 100%;
-    padding: 15px; /* Larger button for mobile */
-    border: none;
-    border-radius: 8px;
+    padding: 16px;
     background: white;
     color: black;
+    border: none;
+    border-radius: 12px;
     font-weight: bold;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     cursor: pointer;
     transition: 0.3s;
     margin-top: 10px;
-    font-size: 16px;
 }
 
 .login-btn:hover {
-    background: #ccc;
-    transform: scale(1.02);
+    background: #ddd;
+    transform: translateY(-2px);
 }
 
 .forgot-pw {
@@ -173,36 +178,194 @@ nav button:hover, nav button:active {
     font-size: 12px;
     color: rgba(255, 255, 255, 0.3);
     text-decoration: none;
+    transition: 0.2s;
 }
 
 .forgot-pw:hover {
     color: white;
 }
 
-/* Updated Mobile Responsive Adjustments */
+/* --- Chat Window Logic --- */
+
+.chat-toggle-btn {
+    position: fixed;
+    right: 30px;
+    bottom: 30px;
+    z-index: 101;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 18px 65px;
+    border-radius: 40px;
+    cursor: pointer;
+    backdrop-filter: blur(15px);
+    font-size: 28px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.chat-container {
+    position: fixed;
+    right: 30px;
+    bottom: 100px;
+    width: 380px; 
+    height: 600px; 
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(25px);
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
+    overflow: hidden;
+}
+
+.hidden { 
+    display: none; 
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.chat-header {
+    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: bold;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column; 
+    gap: 15px; 
+    justify-content: flex-start; 
+    scroll-behavior: smooth;
+}
+
+/* Custom Scrollbar */
+.chat-messages::-webkit-scrollbar { width: 6px; }
+.chat-messages::-webkit-scrollbar-track { background: transparent; }
+.chat-messages::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.msg {
+    font-size: 17px; 
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.95);
+    padding: 5px 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    display: block;
+    width: 100%;
+}
+
+.msg b {
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    font-size: 11px; 
+    letter-spacing: 1.5px;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.del-btn {
+    float: right;
+    background: none;
+    border: none;
+    color: rgba(255, 80, 80, 0.5);
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 0 0 5px 10px;
+}
+
+.del-btn:hover { color: #ff5050; }
+
+/* Input Area Styling */
+.chat-input-area {
+    display: flex;
+    padding: 15px;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.chat-input-area input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    border-radius: 12px;
+    padding: 12px 15px;
+    outline: none;
+    font-size: 15px;
+    transition: 0.3s;
+}
+
+.chat-input-area input:focus {
+    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.chat-input-area button {
+    background: #fff;
+    color: #000;
+    border: none;
+    padding: 0 20px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 13px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.chat-input-area button:hover {
+    background: #ccc;
+    transform: scale(1.05);
+}
+
+.chat-input-area div {
+    position: relative;
+    flex: 1;
+}
+
+#char-count {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.3);
+    pointer-events: none;
+    transition: color 0.3s;
+}
+
+#char-count.warning {
+    color: #ff5050;
+    opacity: 0.8;
+}
+
+.chat-input-area input {
+    padding-right: 60px !important; 
+}
+
+/* Mobile Adjustments */
 @media (max-width: 768px) {
-    header {
-        padding: 15px 5px;
-    }
-
-    nav {
-        gap: 8px;
-    }
-
-    nav button {
-        padding: 16px 20px; /* Taller hit area for thumbs */
-        font-size: 13px;
-        flex: 1 1 auto; /* Grow to fill space */
-        min-width: 110px;
-        text-align: center;
-    }
-
-    .login-card {
-        width: 85%;
-        padding: 30px 20px;
-    }
-
-    .login-card h2 {
-        font-size: 20px;
+    .chat-container {
+        width: calc(100% - 40px);
+        right: 20px;
+        height: 50vh;
     }
 }
