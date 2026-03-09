@@ -125,7 +125,6 @@ document.getElementById('chat-input')?.addEventListener('input', (e) => {
 });
 
 async function deleteMessage(timestamp) {
-    if (!confirm("Confirm deletion?")) return;
     const res = await fetch(`/api/chats/${timestamp}`, { method: 'DELETE' });
     if (res.ok) {
         loadMessages();

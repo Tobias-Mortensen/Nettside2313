@@ -112,7 +112,7 @@ app.post('/send-chat', requireAuth, (req, res) => {
 });
 
 app.delete('/api/chats/:timestamp', requireAuth, (req, res) => {
-    if (req.session.user.permission !== 2) return res.status(403).send("Admin only.");
+    if (req.session.user.permission < 2) return res.status(403).send("Admin only.");
     const timestamp = parseInt(req.params.timestamp);
     let chats = JSON.parse(fs.readFileSync(CHAT_FILE));
     const updatedChats = chats.filter(m => m.time !== timestamp);
