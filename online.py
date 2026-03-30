@@ -112,6 +112,8 @@ def build_presence(status: str, custom_text: str = ""):
     }
     if GAME_START_TIME:
         game["timestamps"] = {"start": GAME_START_TIME}
+    print("[DEBUG] game activity payload:")
+    print(json.dumps(game, indent=2))
     activities.append(game)
 
     return {
@@ -271,6 +273,10 @@ async def keep_online(token: str, session: aiohttp.ClientSession, startup_delay:
                         op   = data.get("op")
                         t    = data.get("t")
                         d    = data.get("d") or {}
+
+                        # Log everything except heartbeat ACKs to keep output clean
+                        if op not in (11, 1):
+                            print(f"[GW] op={op} t={t} d={json.dumps(d)[:200]}")
 
                         if op == 10:
                             heartbeat_interval = d["heartbeat_interval"]
