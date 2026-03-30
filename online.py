@@ -97,7 +97,6 @@ def build_presence(status: str, custom_text: str = ""):
     game = {
         "type": 0,
         "name": GAME_NAME,
-        "id": "game",
         "assets": {
             "large_image": GAME_LARGE_IMAGE,
             "large_text":  GAME_NAME,
