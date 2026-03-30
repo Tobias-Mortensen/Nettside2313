@@ -62,11 +62,12 @@ STATUS_ROTATE_INTERVAL = 20  # seconds per status line
 STATUS_EMOJI           = "💵"  # Discord :dollar: emoji
 
 # Fake game activity
-GAME_NAME        = "Exchanging on Cypto2cash.wtf"
-GAME_LARGE_IMAGE = "https://i.imgur.com/st4o1Hr.png"
-GAME_SMALL_IMAGE = "https://i.imgur.com/st4o1Hr.png"
+GAME_NAME         = "Exchanging on Cypto2cash.wtf"
+GAME_APP_ID       = "1488138632148811807"
+GAME_LARGE_IMAGE  = "crypto"
+GAME_SMALL_IMAGE  = "crypto"
 GAME_BUTTON_LABEL = "Exchange now!"
-GAME_BUTTON_URL   = "https://crypto2cash.wtf"
+GAME_BUTTON_URL   = "https://discord.gg/7Xz8mZNx8Q"
 
 STATUS        = "online"   # online / idle / dnd / invisible
 CUSTOM_STATUS = ""
@@ -97,6 +98,7 @@ def build_presence(status: str, custom_text: str = ""):
     game = {
         "type": 0,
         "name": GAME_NAME,
+        "application_id": GAME_APP_ID,
         "assets": {
             "large_image": GAME_LARGE_IMAGE,
             "large_text":  GAME_NAME,
