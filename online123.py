@@ -69,8 +69,25 @@ GAME_SMALL_IMAGE  = "crypto"
 GAME_BUTTON_LABEL = "Exchange now!"
 GAME_BUTTON_URL   = "https://discord.gg/7Xz8mZNx8Q"
 
-STATUS        = "online"   # online / idle / dnd / invisible
-CUSTOM_STATUS = ""
+# Resolved at startup — will hold the actual asset ID for "crypto"
+GAME_LARGE_IMAGE_ID = "crypto"
+GAME_SMALL_IMAGE_ID = "crypto"
+
+
+async def fetch_asset_id(session: aiohttp.ClientSession, asset_name: str) -> str:
+    """Fetch the numeric asset ID for a named Rich Presence asset."""
+    try:
+        async with session.get(
+            f"https://discord.com/api/v10/oauth2/applications/{GAME_APP_ID}/assets"
+        ) as r:
+            if r.status == 200:
+                assets = await r.json()
+                for a in assets:
+                    if a.get("name") == asset_name:
+                        return str(a["id"])
+    except Exception:
+        pass
+    return asset_name  # fallback to name if lookup fails
 
 accounts       = {}
 ws_connections = {}
@@ -100,9 +117,9 @@ def build_presence(status: str, custom_text: str = ""):
         "name": GAME_NAME,
         "application_id": GAME_APP_ID,
         "assets": {
-            "large_image": GAME_LARGE_IMAGE,
+            "large_image": GAME_LARGE_IMAGE_ID,
             "large_text":  GAME_NAME,
-            "small_image": GAME_SMALL_IMAGE,
+            "small_image": GAME_SMALL_IMAGE_ID,
             "small_text":  GAME_NAME,
         },
         "buttons": [GAME_BUTTON_LABEL],
@@ -386,10 +403,21 @@ async def keep_online(token: str, session: aiohttp.ClientSession, startup_delay:
 
 
 async def main():
-    global running, STATUS, GAME_START_TIME
-    GAME_START_TIME = int(time.time() * 1000)  # milliseconds, resets each run
+    global running, STATUS, GAME_START_TIME, GAME_LARGE_IMAGE_ID, GAME_SMALL_IMAGE_ID
+    GAME_START_TIME = int(time.time() * 1000)
 
     tokens = load_tokens()
+    if not tokens:
+        print(f"{Fore.RED}No tokens found in tokens.txt")
+        return
+
+    # Resolve asset IDs before starting
+    connector = aiohttp.TCPConnector(limit=0, ssl=False)
+    async with aiohttp.ClientSession(connector=connector) as _s:
+        GAME_LARGE_IMAGE_ID = await fetch_asset_id(_s, GAME_LARGE_IMAGE)
+        GAME_SMALL_IMAGE_ID = await fetch_asset_id(_s, GAME_SMALL_IMAGE)
+
+    print(f"{Fore.CYAN}Asset IDs resolved: large={GAME_LARGE_IMAGE_ID} small={GAME_SMALL_IMAGE_ID}")
     if not tokens:
         print(f"{Fore.RED}No tokens found in tokens.txt")
         return
@@ -431,8 +459,7 @@ async def main():
     ui_thread = threading.Thread(target=draw_ui, daemon=True)
     ui_thread.start()
 
-    connector = aiohttp.TCPConnector(limit=0, ssl=False)
-    async with aiohttp.ClientSession(connector=connector) as session:
+    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=0, ssl=False)) as session:
         tasks = [
             asyncio.create_task(keep_online(t, session, startup_delay=i * 2.0))
             for i, t in enumerate(tokens)
