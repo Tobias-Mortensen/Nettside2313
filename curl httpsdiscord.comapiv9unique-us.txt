@@ -1,0 +1,1 @@
+curl https://discord.com/api/v9/unique-username/username-attempt-unauthed -X POST -H "Content-Type: application/json" -d '{"username":"test1234"}'
