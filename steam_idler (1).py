@@ -11,155 +11,94 @@ except ImportError:
     print("Install steam package: pip install steam[client]")
     sys.exit(1)
 
+ACCOUNTS_FILE = Path("accounts.json")
+GAME_IDS = [730]
 
-CONFIG_FILE = Path("idler_config.json")
-
-DEFAULT_CONFIG = {
-    "reconnect_delay": 30,
-    "accounts": [
-        {
-            "username": "",
-            "password": "",
-            "game_ids": [730, 570, 440],
-        },
-        {
-            "username": "",
-            "password": "",
-            "game_ids": [730],
-        },
-    ],
-}
-
-
-def load_config() -> dict:
-    if CONFIG_FILE.exists():
-        with open(CONFIG_FILE) as f:
+def load_accounts():
+    if ACCOUNTS_FILE.exists():
+        with open(ACCOUNTS_FILE) as f:
             return json.load(f)
-    with open(CONFIG_FILE, "w") as f:
-        json.dump(DEFAULT_CONFIG, f, indent=2)
-    print(f"Created {CONFIG_FILE} — fill in your accounts and run again.")
-    sys.exit(0)
-
+    print("No accounts.json found.")
+    sys.exit(1)
 
 class AccountIdler:
-    def __init__(self, account: dict, reconnect_delay: int):
+    def __init__(self, account):
         self.account = account
-        self.reconnect_delay = reconnect_delay
         self.client = SteamClient()
         self.running = True
-        self.tag = account["username"] or "unknown"
-
+        self.tag = account["username"]
         self.client.on("logged_on", self._on_logged_on)
         self.client.on("disconnected", self._on_disconnected)
         self.client.on("error", self._on_error)
 
-    def log(self, msg: str):
+    def log(self, msg):
         print(f"[{self.tag}] {msg}")
 
     def _on_logged_on(self):
-        name = self.client.user.name or self.tag
-        self.log(f"Logged in as {name}")
-        game_ids = self.account["game_ids"]
-        self.log(f"Idling {len(game_ids)} game(s): {game_ids}")
-        self.client.games_played(game_ids)
+        self.log("Logged on")
+        self.client.games_played(GAME_IDS)
 
     def _on_disconnected(self):
         self.log("Disconnected")
 
     def _on_error(self, result):
         self.log(f"Error: {result}")
-        if result == EResult.InvalidPassword:
-            self.log("Invalid credentials — stopping this account.")
-            self.running = False
-        elif result == EResult.RateLimitExceeded:
-            self.log("Rate limited — waiting longer before retry.")
-
-    def _try_login(self, **kwargs) -> EResult:
-        return self.client.login(
-            self.account["username"],
-            self.account["password"],
-            **kwargs,
-        )
-
-    async def _idle_loop(self):
-        while self.running and self.client.connected:
-            await asyncio.sleep(1)
-            self.client.sleep(0)
 
     async def run(self):
-        username = self.account["username"]
-        password = self.account["password"]
-
-        if not username or not password:
-            self.log("Missing credentials — skipping.")
+        u = self.account["username"]
+        p = self.account["password"]
+        if not u or not p:
+            self.log("Missing credentials, skipping.")
             return
-
+        self.log("Logging in...")
+        result = self.client.cli_login(u, p)
+        if result != EResult.OK:
+            self.log(f"Login failed: {result}")
+            return
+        self.log("Idling...")
         while self.running:
-            self.log("Logging in...")
-            result = self._try_login()
-
-            if result == EResult.TwoFactorCodeRequired:
-                code = input(f"[{self.tag}] Enter Steam Guard Mobile code: ")
-                result = self._try_login(two_factor_code=code)
-            elif result == EResult.AccountLoginDeniedNeedTwoFactor:
-                code = input(f"[{self.tag}] Enter email auth code: ")
-                result = self._try_login(auth_code=code)
-
-            if result == EResult.OK:
-                self.log("Idling...")
-                try:
-                    await self._idle_loop()
-                except asyncio.CancelledError:
-                    break
-            else:
-                self.log(f"Login failed: {result}")
-
-            if not self.running:
-                break
-
-            self.log(f"Reconnecting in {self.reconnect_delay}s...")
             try:
-                await asyncio.sleep(self.reconnect_delay)
+                await asyncio.sleep(5)
+                self.client.sleep(0)
+                if not self.client.connected and self.running:
+                    self.log("Reconnecting...")
+                    await asyncio.sleep(10)
+                    result = self.client.cli_login(u, p)
+                    if result == EResult.OK:
+                        self.log("Reconnected.")
+                    else:
+                        self.log(f"Reconnect failed: {result}")
+                        await asyncio.sleep(30)
             except asyncio.CancelledError:
                 break
-
+            except Exception as e:
+                self.log(f"Error: {e}")
+                await asyncio.sleep(10)
         self.shutdown()
 
     def shutdown(self):
-        self.log("Shutting down...")
         try:
             self.client.games_played([])
             self.client.logout()
-        except Exception:
+        except:
             pass
 
     def stop(self):
         self.running = False
 
-
 async def main():
-    config = load_config()
-    accounts = config.get("accounts", [])
-    reconnect_delay = config.get("reconnect_delay", 30)
-
-    if not accounts:
-        print("[!] No accounts in config.")
-        return
-
-    print(f"[*] Starting {len(accounts)} account(s)...\n")
-
-    idlers = [AccountIdler(acc, reconnect_delay) for acc in accounts]
-
+    accounts = load_accounts()
+    valid = [a for a in accounts if a.get("username") and a.get("password")]
+    print(f"Starting {len(valid)} account(s)...\n")
+    idlers = [AccountIdler(a) for a in valid]
     loop = asyncio.get_event_loop()
     for sig in (signal.SIGINT, signal.SIGTERM):
         try:
             loop.add_signal_handler(sig, lambda: [i.stop() for i in idlers])
         except NotImplementedError:
             pass
-
-    await asyncio.gather(*(idler.run() for idler in idlers))
-    print("\n[*] All accounts stopped.")
-
+    await asyncio.gather(*(i.run() for i in idlers))
+    print("\nAll accounts stopped.")
 
 if __name__ == "__main__":
     asyncio.run(main())
