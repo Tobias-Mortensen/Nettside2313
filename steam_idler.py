@@ -12,26 +12,17 @@ except ImportError:
     sys.exit(1)
 
 
-CONFIG_FILE = Path("idler_config.json")
-
-DEFAULT_CONFIG = {
-    "accounts": [
-        {
-            "username": "",
-            "password": "",
-            "game_ids": [730],
-        },
-    ],
-}
+ACCOUNTS_FILE = Path("accounts.json")
+GAME_IDS = [730]  # CS2
 
 
-def load_config() -> dict:
-    if CONFIG_FILE.exists():
-        with open(CONFIG_FILE) as f:
+def load_accounts() -> list:
+    if ACCOUNTS_FILE.exists():
+        with open(ACCOUNTS_FILE) as f:
             return json.load(f)
-    with open(CONFIG_FILE, "w") as f:
-        json.dump(DEFAULT_CONFIG, f, indent=2)
-    print(f"Created {CONFIG_FILE} — fill in your accounts and run again.")
+    with open(ACCOUNTS_FILE, "w") as f:
+        json.dump([{"username": "", "password": ""}], f, indent=2)
+    print(f"Created {ACCOUNTS_FILE} — fill in your accounts and run again.")
     sys.exit(0)
 
 
@@ -41,7 +32,6 @@ class AccountIdler:
         self.client = SteamClient()
         self.running = True
         self.tag = account["username"] or "unknown"
-        self.connected = False
 
         self.client.on("logged_on", self._on_logged_on)
         self.client.on("disconnected", self._on_disconnected)
@@ -51,14 +41,11 @@ class AccountIdler:
         print(f"[{self.tag}] {msg}")
 
     def _on_logged_on(self):
-        self.connected = True
         self.log("Logged on")
-        game_ids = self.account["game_ids"]
-        self.log(f"Idling {len(game_ids)} game(s): {game_ids}")
-        self.client.games_played(game_ids)
+        self.log(f"Idling {len(GAME_IDS)} game(s): {GAME_IDS}")
+        self.client.games_played(GAME_IDS)
 
     def _on_disconnected(self):
-        self.connected = False
         self.log("Disconnected")
 
     def _on_error(self, result):
@@ -86,7 +73,6 @@ class AccountIdler:
                 await asyncio.sleep(5)
                 self.client.sleep(0)
 
-                # reconnect if dropped
                 if not self.client.connected and self.running:
                     self.log("Connection lost, reconnecting...")
                     await asyncio.sleep(10)
@@ -118,16 +104,16 @@ class AccountIdler:
 
 
 async def main():
-    config = load_config()
-    accounts = config.get("accounts", [])
+    accounts = load_accounts()
 
     if not accounts:
-        print("[!] No accounts in config.")
+        print("[!] No accounts in accounts.json.")
         return
 
-    print(f"[*] Starting {len(accounts)} account(s)...\n")
+    valid = [a for a in accounts if a.get("username") and a.get("password")]
+    print(f"[*] Starting {len(valid)} account(s)...\n")
 
-    idlers = [AccountIdler(acc) for acc in accounts]
+    idlers = [AccountIdler(acc) for acc in valid]
 
     loop = asyncio.get_event_loop()
     for sig in (signal.SIGINT, signal.SIGTERM):
