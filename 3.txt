@@ -1,0 +1,12 @@
+rm ecosystem.config.js
+cat > ecosystem.config.js << 'EOF'
+module.exports = {
+  apps: [{
+    name: "donut-bot",
+    script: "bot.py",
+    interpreter: "/root/bot/venv/bin/python",
+    cwd: "/root/bot",
+    autorestart: true
+  }]
+}
+EOF
