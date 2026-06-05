@@ -1,12 +1,6 @@
 #!/usr/bin/env python3
 """
-Register test accounts against snapcrest.app.
-
-Mirrors the browser signup flow:
-  1. GET  /auth/register   -> obtain the session cookie
-  2. POST /auth/register   -> submit email + password (form-urlencoded)
-
-A 302 redirect to /dashboard is treated as success.
+Register test accounts against snapcrest.app with proxy support.
 """
 
 import random
@@ -16,64 +10,71 @@ import sys
 import time
 
 import requests
+from requests.exceptions import RequestException, ProxyError, ConnectionError
 
 # ---------------------------------------------------------------------------
-# CONFIG -- change these
+# CONFIG
 # ---------------------------------------------------------------------------
-NUM_ACCOUNTS = 10                       # how many accounts to create
+NUM_ACCOUNTS = 10
 BASE_URL     = "https://snapcrest.app"
 REGISTER_PATH = "/auth/register"
-DELAY_SECONDS = 1.0                     # pause between accounts (avoid rate limits)
-SAVE_FILE = "created_accounts.txt"      # where to log created credentials
-FIXED_PASSWORD = "hello998"             # set to None to use random passwords instead
+DELAY_SECONDS = 2.0                     # Increased delay
+SAVE_FILE = "created_accounts.txt"
+FIXED_PASSWORD = "hello998"
+
+# Your Nettify proxy
+PROXY_STRING = "awny02gupdzj:i1ill526hww6@eu.nettify.xyz:8080"
+PROXIES_LIST = [f"http://{PROXY_STRING}"]
+PROXY_ROTATE_EVERY = 3
 # ---------------------------------------------------------------------------
 
 BROWSER_HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
-    ),
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Language": "en-US,en;q=0.9",
 }
 
 
-def random_email():
-    name = "".join(random.choices(string.ascii_lowercase + string.digits, k=10))
-    return f"test_{name}@example.com"
+def test_proxy(proxy_dict):
+    """Quick test if proxy is working."""
+    try:
+        test_session = requests.Session()
+        test_session.proxies.update(proxy_dict)
+        r = test_session.get("https://httpbin.org/ip", timeout=15)
+        return r.status_code == 200
+    except Exception as e:
+        print(f"   Proxy test failed: {type(e).__name__} - {e}")
+        return False
 
 
-def random_password(length=14):
-    # Ensure at least one upper, lower, digit, and symbol
-    upper  = random.choice(string.ascii_uppercase)
-    lower  = random.choice(string.ascii_lowercase)
-    digit  = random.choice(string.digits)
-    symbol = random.choice("!@#$%^&*")
-    rest   = random.choices(string.ascii_letters + string.digits, k=length - 4)
-    pwd    = list(upper + lower + digit + symbol) + rest
-    random.shuffle(pwd)
-    return "".join(pwd)
+def get_proxy_for_account(account_index: int):
+    if not PROXIES_LIST:
+        return None
+    proxy_idx = (account_index // PROXY_ROTATE_EVERY) % len(PROXIES_LIST)
+    proxy_url = PROXIES_LIST[proxy_idx]
+    return {"http": proxy_url, "https": proxy_url}
 
 
-def register_account(email, password):
-    """Returns (success: bool, status_code: int, detail: str)."""
+def register_account(email, password, proxy_dict=None):
     session = requests.Session()
     session.headers.update(BROWSER_HEADERS)
+    
+    if proxy_dict:
+        session.proxies.update(proxy_dict)
 
-    # 1. GET the register page to pick up the session cookie + CSRF token.
     try:
-        page = session.get(BASE_URL + REGISTER_PATH, timeout=30)
-    except requests.RequestException as e:
-        return False, 0, f"GET failed: {e}"
+        page = session.get(BASE_URL + REGISTER_PATH, timeout=40)
+    except RequestException as e:
+        err_type = type(e).__name__
+        return False, 0, f"GET failed [{err_type}]: {str(e)[:100]}"
 
-    # The token is exposed as window.APP_STATE.csrf_token = "..."
+    # Extract CSRF token
     m = re.search(r'csrf_token:\s*"([^"]+)"', page.text)
     if not m:
-        return False, page.status_code, "could not find csrf_token on page"
+        return False, page.status_code, "CSRF token not found"
+
     csrf_token = m.group(1)
 
-    # 2. POST credentials + CSRF token. Send the token as a form field AND a
-    #    header to cover the common Flask / Flask-WTF setups.
     try:
         resp = session.post(
             BASE_URL + REGISTER_PATH,
@@ -84,36 +85,50 @@ def register_account(email, password):
                 "Origin": BASE_URL,
             },
             allow_redirects=False,
-            timeout=30,
+            timeout=40,
         )
-    except requests.RequestException as e:
-        return False, 0, f"POST failed: {e}"
+    except RequestException as e:
+        return False, 0, f"POST failed: {type(e).__name__} - {e}"
 
     location = resp.headers.get("Location", "")
-    # 302 -> /dashboard means success; a 2xx might too depending on the app.
-    success = (resp.status_code in (301, 302) and "dashboard" in location) or (
+    success = (resp.status_code in (301, 302) and "dashboard" in location.lower()) or (
         resp.status_code in (200, 201)
     )
+    
     detail = f"-> {location}" if location else resp.text[:120].replace("\n", " ")
     return success, resp.status_code, detail
 
 
 def main():
     n = NUM_ACCOUNTS
-    if len(sys.argv) > 1:                # optional override: python register_accounts.py 5
+    if len(sys.argv) > 1:
         n = int(sys.argv[1])
 
-    print(f"Creating {n} account(s) against {BASE_URL}{REGISTER_PATH}\n")
+    print(f"Using proxy: {PROXY_STRING}")
+    print(f"Creating {n} account(s)...\n")
+
+    # Test proxy first
+    print("Testing proxy...")
+    proxy_dict = get_proxy_for_account(0)
+    if proxy_dict and not test_proxy(proxy_dict):
+        print("⚠️  Proxy test failed! Continuing anyway...\n")
+
     created = []
 
     for i in range(1, n + 1):
         email = random_email()
         password = FIXED_PASSWORD if FIXED_PASSWORD else random_password()
-        ok, code, detail = register_account(email, password)
-        status = "OK " if ok else "FAIL"
-        print(f"[{i:>2}/{n}] {status} {code}  {email}  {detail}")
+        
+        proxy_dict = get_proxy_for_account(i-1)
+        ok, code, detail = register_account(email, password, proxy_dict)
+        
+        status = "✅ OK" if ok else "❌ FAIL"
+        proxy_num = (i-1) // PROXY_ROTATE_EVERY
+        print(f"[{i:>2}/{n}] {status} {code} (proxy {proxy_num}) {email} | {detail[:80]}")
+
         if ok:
             created.append((email, password))
+
         if i < n:
             time.sleep(DELAY_SECONDS)
 
@@ -122,9 +137,25 @@ def main():
             f.write("email,password\n")
             for email, password in created:
                 f.write(f"{email},{password}\n")
-        print(f"\nSaved {len(created)} credential pair(s) to {SAVE_FILE}")
+        print(f"\n✅ Saved {len(created)} accounts to {SAVE_FILE}")
 
     print(f"\nDone: {len(created)}/{n} succeeded.")
+
+
+def random_email():
+    name = "".join(random.choices(string.ascii_lowercase + string.digits, k=10))
+    return f"test_{name}@example.com"
+
+
+def random_password(length=14):
+    upper = random.choice(string.ascii_uppercase)
+    lower = random.choice(string.ascii_lowercase)
+    digit = random.choice(string.digits)
+    symbol = random.choice("!@#$%^&*")
+    rest = random.choices(string.ascii_letters + string.digits, k=length - 4)
+    pwd = list(upper + lower + digit + symbol) + rest
+    random.shuffle(pwd)
+    return "".join(pwd)
 
 
 if __name__ == "__main__":
